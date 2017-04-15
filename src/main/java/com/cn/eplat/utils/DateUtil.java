@@ -601,10 +601,19 @@ public class DateUtil {
 		
 		
 		
+		long time_mills = -62135798400000l;
+		Date date = new Date(time_mills);
+		System.out.println("date = " + formatDate(2, date));	// 输出: date = 0001-01-01 00:00:00
+		
+		
+		
+		
+		
+		/*
 		Date now_time = new Date();
 		Date result_date = calcDatePlusGivenTimeMills(now_time, -1*PushPunchCardDatas.getTolerance_time_mills());
 		System.out.println("计算结果为：" + formatDate(2, result_date));
-		
+		*/
 		
 		
 		/*

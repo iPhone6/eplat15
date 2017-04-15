@@ -40,4 +40,21 @@
 		</foreach>
 	</select>
 	
+	<select id="findPushToHwsByName" parameterType="string" resultType="com.cn.eplat.model.PushToHw" >
+		select * from push_to_hw
+		where name = #{name}
+	</select>
+	
+	<select id="getPushToHwsByIdSeq" resultType="com.cn.eplat.model.PushToHw" >
+		select * from push_to_hw
+		where 1 = 1
+			<if test="idSeqStart != null and idSeqStart > 0 ">
+				and id &gt;= #{idSeqStart}
+			</if>
+			<if test="idSeqEnd != null and idSeqEnd > 0 ">
+				and id &lt;= #{idSeqEnd}
+			</if>
+	</select>
+	
+	
 </mapper>

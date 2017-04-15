@@ -67,8 +67,13 @@ public class FilterPunchCardDatas {
 		FilterPunchCardDatas.addFilterTimes();
 		logger.info("当前是第（" + FilterPunchCardDatas.getFilter_times() + "）次筛选考勤数据，开始时间：" + DateUtil.formatDate(2, now_time));
 		
+		/*
+		// TODO: 临时代码 (Start)
+		int ret = epDataController.filterPush2HwAttenOperation(null, null);
+		System.out.println("ret = " + ret);
+		// TODO: 临时代码 (End)
+		*/
 		
-		// // 正常情况下筛选打卡数据（正常情况下，只筛选前一天的打卡数据）
 		Date earliest_pfl_time = pushFilterLogService.getEarliestPushFilterLogTime();
 		
 		if(earliest_pfl_time == null) {
@@ -111,9 +116,6 @@ public class FilterPunchCardDatas {
 				logger.error("筛选准备推送华为的考勤数据（新数据）失败, new_filter_ret = " + new_filter_ret);
 			}
 		}
-		
-		// // 探测是否有异常情况（有打卡数据的proc_result字段的值为NULL时），如有异常情况，则进行重新筛选
-		
 		
 		
 		

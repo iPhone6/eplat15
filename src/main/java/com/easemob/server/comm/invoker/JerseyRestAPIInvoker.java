@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyWebTarget;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -28,6 +29,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,37 +79,54 @@ public class JerseyRestAPIInvoker implements RestAPIInvoker {
 
         JerseyClient client = RestAPIUtils.getJerseyClient(StringUtils.startsWithIgnoreCase(url, "HTTPS"));
         JerseyWebTarget target = client.target(url);
+        
+        // // default timeout value for all requests
+        client.property(ClientProperties.CONNECT_TIMEOUT, 30000);	// 设置连接超时时间为30秒（30000毫秒）
+        client.property(ClientProperties.READ_TIMEOUT, 30000);
 
         buildQuery(target, query);
 
         Invocation.Builder inBuilder = target.request();
-
+        // // overriden timeout value for this request
+        inBuilder.property(ClientProperties.CONNECT_TIMEOUT, 20000);
+        inBuilder.property(ClientProperties.READ_TIMEOUT, 20000);
+        
         buildHeader(inBuilder, header);
 
         Response response = null;
         Object b = null == body ? null : body.getBody();
-        if (HTTPMethod.METHOD_GET.equals(method)) {
-            response = inBuilder.get(Response.class);
-        } else if (HTTPMethod.METHOD_POST.equals(method)) {
-            response = inBuilder.post(Entity.entity(b, MediaType.APPLICATION_JSON), Response.class);
-        } else if (HTTPMethod.METHOD_PUT.equals(method)) {
-            response = inBuilder.put(Entity.entity(b, MediaType.APPLICATION_JSON), Response.class);
-        } else if (HTTPMethod.METHOD_DELETE.equals(method)) {
-            response = inBuilder.delete(Response.class);
-        }
-        responseWrapper.setResponseStatus(response.getStatus());
-
-        String responseContent = response.readEntity(String.class);
-        ObjectMapper mapper = new ObjectMapper();
-        JsonFactory factory = mapper.getFactory();
-        JsonParser jp;
         try {
-            jp = factory.createParser(responseContent);
-            responseNode = mapper.readTree(jp);
-            responseWrapper.setResponseBody(responseNode);
-        } catch (IOException e) {
-            log.error(MessageTemplate.STR2JSON_ERROR_MSG, e);
-            responseWrapper.addError(MessageTemplate.STR2JSON_ERROR_MSG);
+			if (HTTPMethod.METHOD_GET.equals(method)) {
+			    response = inBuilder.get(Response.class);
+			} else if (HTTPMethod.METHOD_POST.equals(method)) {
+			    response = inBuilder.post(Entity.entity(b, MediaType.APPLICATION_JSON), Response.class);
+			} else if (HTTPMethod.METHOD_PUT.equals(method)) {
+			    response = inBuilder.put(Entity.entity(b, MediaType.APPLICATION_JSON), Response.class);
+			} else if (HTTPMethod.METHOD_DELETE.equals(method)) {
+			    response = inBuilder.delete(Response.class);
+			}
+		} catch (Exception e1) {
+			log.error("请求出现异常，可能是请求超时。Error_Info = " + e1.getMessage());
+//			return null;
+		}
+        if(response != null) {
+        	responseWrapper.setResponseStatus(response.getStatus());
+        	String responseContent = response.readEntity(String.class);
+        	ObjectMapper mapper = new ObjectMapper();
+        	JsonFactory factory = mapper.getFactory();
+        	JsonParser jp;
+        	try {
+        		jp = factory.createParser(responseContent);
+        		responseNode = mapper.readTree(jp);
+        		responseWrapper.setResponseBody(responseNode);
+        	} catch (IOException e) {
+        		log.error(MessageTemplate.STR2JSON_ERROR_MSG, e);
+        		responseWrapper.addError(MessageTemplate.STR2JSON_ERROR_MSG);
+        	}
+        } else {
+//        	responseWrapper.setResponseStatus(408);	// 请求超时状态码（408）
+        	responseWrapper.setResponseStatus(Status.REQUEST_TIMEOUT.getStatusCode());
+        	responseWrapper.addError("Request Error: possibly request timeout exception occured!");
         }
 
         log.debug("=============Response=============");

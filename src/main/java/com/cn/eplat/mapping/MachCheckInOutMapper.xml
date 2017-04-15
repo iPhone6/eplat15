@@ -16,7 +16,7 @@
 	</sql>
 	
 	<sql id="select_top_n">
-		select top 30
+		select top 50
 	</sql>
 	
 	<sql id="select_all_fields_top100">

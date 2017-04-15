@@ -55,9 +55,9 @@ public class PushPunchCardDatas {
 	
 	
 	private static JerseyRestAPIInvoker rest_invoker = new JerseyRestAPIInvoker();
-//	private static String push_mach_data_url = "https://hr.e-lead.cn:8443/eplat-pro/epAttenController.do?pushMachPunchDataCHECKINOUT";	// 生产环境配置（https）
+	private static String push_mach_data_url = "https://hr.e-lead.cn:8443/eplat-pro/epAttenController.do?pushMachPunchDataCHECKINOUT";	// 生产环境配置（https）
 //	private static String push_mach_data_url = "https://192.168.1.8:8443/eplat-08/epAttenController.do?pushMachPunchDataCHECKINOUT";
-	private static String push_mach_data_url = "https://192.168.1.102:9443/eplat-08/epAttenController.do?pushMachPunchDataCHECKINOUT";	// 本地测试环境配置（https）
+//	private static String push_mach_data_url = "https://192.168.1.102:9443/eplat-08/epAttenController.do?pushMachPunchDataCHECKINOUT";	// 本地测试环境配置（https）
 //	private static String push_mach_data_url = "https://localhost:9443/eplat-08/epAttenController.do?pushMachPunchDataCHECKINOUT";
 //	private static String push_mach_data_url = "http://192.168.1.8:8080/eplat-08/epAttenController.do?pushMachPunchDataCHECKINOUT";		// 本地测试环境配置（http）
 	
@@ -106,7 +106,7 @@ public class PushPunchCardDatas {
 	}
 	
 	
-//	@Scheduled(cron = "0/10 * * * * ? ")	// 间隔60秒执行
+	@Scheduled(cron = "0/60 * * * * ? ")	// 间隔60秒执行
 	public void push() {
 		
 		// 监控打卡机用户信息表（Userinfo），如果用户信息条数发生了变化，则更新打卡机用户信息静态变量对象的值

@@ -410,11 +410,13 @@ public class ReadExcel {
     				
     				epu.setNotes("row_no=" + rowNum);
     				
-    				HSSFCell work_no = hssfRow.getCell(0);
-    				HSSFCell name = hssfRow.getCell(1);
-    				HSSFCell dept_name = hssfRow.getCell(2);
-    				HSSFCell project_name = hssfRow.getCell(3);
-    				HSSFCell email = hssfRow.getCell(4);
+    				HSSFCell work_no = hssfRow.getCell(0);	// 工号
+    				HSSFCell name = hssfRow.getCell(1);		// 姓名
+    				HSSFCell id_no = hssfRow.getCell(2);	// 身份证号
+    				HSSFCell base_place = hssfRow.getCell(3);	// base地
+    				HSSFCell email = hssfRow.getCell(4);	// 邮箱
+    				HSSFCell dept_name = hssfRow.getCell(5);	// 部门
+    				HSSFCell project_name = hssfRow.getCell(6);	// 项目组
     				
     				epu.setWork_no(getValue_str(work_no));
     				String name_str = getValue_str(name);
@@ -426,6 +428,8 @@ public class ReadExcel {
     				epu.setDept_name(getValue_str(dept_name));
     				epu.setProject_name(getValue_str(project_name));
     				epu.setEmail(getValue_str(email));
+    				epu.setIdentity_no(getValue_str(id_no));	// 身份证号
+    				epu.setBase_place(getValue_str(base_place));	// base地
     				epu.setMobile_phone("<NONE>");	// TODO: Excel表格数据中暂未提供手机号字段的值，用“<NONE>”标记标记
     				// 设置默认初始密码为111111
     				epu.setPwd("96E79218965EB72C92A549DD5A330112");

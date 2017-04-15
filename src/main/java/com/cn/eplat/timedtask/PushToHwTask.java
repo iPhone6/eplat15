@@ -59,12 +59,24 @@ public class PushToHwTask {
 	}
 
 //	 @Scheduled(cron = "0 30 1 * * ? ") // "0 0 1 * * ?"      // （每天凌晨1点30分开始执行）(正式上线时用的定时设置)
-//	@Scheduled(cron = "0/5 * * * * ? ")     // （快速测试用定时设置。。。）
+//	@Scheduled(cron = "0/8 * * * * ? ")     // （快速测试用定时设置。。。）
 	public void pushDatasToHw() { // 将从数据库里查出来的数据组装成推送需要的数据
 		long start_time = System.currentTimeMillis();	// 记录推送开始时间毫秒数
 		System.out.println("本次推送到华为,开始时间   "+DateUtil.formatDate(2, new Date()));
 		List<PushToHw> allNeedsDatas = getAllNeedsDatas();
+		
 		/*
+		// TODO: 临时代码
+		List<PushToHw> allNeedsDatas = null;
+		try {
+			allNeedsDatas = pushToHwDao.getPushToHwsByIdSeq(2208l, null);
+		} catch (Exception e) {
+			System.err.println("获取数据异常，error info = " + e.getMessage());
+		}
+		*/
+		
+		/*
+		// TODO: 临时代码
 		List<PushToHw> allNeedsDatas = new ArrayList<PushToHw>();
 		PushToHw ptw1 = new PushToHw();
 //		PushToHw ptw2 = new PushToHw();
@@ -80,6 +92,7 @@ public class PushToHwTask {
 		
 		allNeedsDatas.add(ptw1);
 		*/
+		
 		if (allNeedsDatas != null && !allNeedsDatas.isEmpty()) {
 			String token = GetTokenHelper.getToken();
 			ArrayList<Map<String, String>> lists = new ArrayList<>();
@@ -145,7 +158,15 @@ public class PushToHwTask {
 	//获取所有需要推送的数据
 	public List<PushToHw> getAllNeedsDatas() {
 		List<PushToHw> result = new ArrayList<PushToHw>();
+		
+		/*
+		String name = "符边正";
+		name = "康贺梁";
+		result = pushToHwDao.findPushToHwsByName(name);
+		*/
+		
 		Date time = pushLogDao.getLatestPushLogTime();
+		
 		if (time == null) {
 			List<PushToHw> allDatas = pushToHwDao.getPushToHwsByDate(null,null);// 获取所有的数据
 			if (allDatas != null) {
@@ -173,6 +194,8 @@ public class PushToHwTask {
 				result.addAll(waitingDatas);
 			}
 		}
+		
+		
 		return result;
 	}
 

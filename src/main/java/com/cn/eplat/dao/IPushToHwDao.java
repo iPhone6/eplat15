@@ -17,4 +17,12 @@ public interface IPushToHwDao {
 	
 	//根据ids查找数据
 	public List<PushToHw> getPushToHwsByIds(List<Long> ids);
+	
+	
+	// 按名字查找某个人的所有推送数据
+	List<PushToHw> findPushToHwsByName(String name);
+	
+	// 按序号筛选推送数据（从开始到结束序号）
+	List<PushToHw> getPushToHwsByIdSeq(@Param("idSeqStart") Long idSeqStart, @Param("idSeqEnd") Long idSeqEnd);
+	
 }
