@@ -184,6 +184,12 @@ public class EpDataController {
 		return "fileUpload/HwEmpInfoFileUpload";
 	}
 	
+	@RequestMapping(params = "gotoHOneKeyRefilter")
+	public String gotoOneKeyRefilterPage(HttpServletRequest request) {
+		System.out.println("进入一键重新筛选页面");
+		return "epData/OneKeyReFilter";
+	}
+	
 	@RequestMapping(params = "impEmpInfo", produces = "application/json; charset=UTF-8")
 	@ResponseBody
 	public String impEmployeeInfo(HttpServletRequest request, @RequestParam("emp_info_xls") MultipartFile multipartFile) {
@@ -321,6 +327,96 @@ public class EpDataController {
 		
 //		return 1;
 	}
+	
+	/**
+	 * 根据指定开始日期、结束日期，重新筛选从开始日期到结束日期之间的所有打卡数据
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	@RequestMapping(params = "reFilterPush2HwAttens", produces = "application/json; charset=UTF-8")
+	@ResponseBody
+	public String reFilterPush2HwAttenOperation(HttpServletRequest request) {
+		
+		JSONObject json_ret = new JSONObject();
+		
+		// 从接收到的请求中获得传入参数
+		String date_range_start = request.getParameter("start");	// 开始日期
+		String date_range_end = request.getParameter("end");	// 结束日期
+		
+		Date now_date = new Date();		// 系统当前日期
+		Date start_date = null;
+		Date end_date = null;
+		
+		// 对传入参数进行最基本的校验（如非空校验）
+		if(StringUtils.isBlank(date_range_start) || StringUtils.isBlank(date_range_end)) {
+			logger.info("开始日期或结束日期参数为空，默认重新筛选最近一周的打卡数据");
+			start_date = DateUtil.calcXDaysAfterADate(-7, now_date);
+			end_date = DateUtil.calcXDaysAfterADate(-1, now_date);
+		} else {
+			String start_date_str_trim = date_range_start.trim();	// 去掉首尾空白字符后的开始日期字符串
+			String end_date_str_trim = date_range_end.trim();	// 去掉首尾空白字符后的结束日期字符串
+			start_date = DateUtil.parse2date(1, start_date_str_trim);	// 将开始日期字符串转换成开始日期（yyyy-MM-dd 格式）
+			end_date = DateUtil.parse2date(1, end_date_str_trim);	// 将结束日期字符串转换成结束日期（yyyy-MM-dd 格式）
+		}
+		
+		if(start_date == null || end_date == null) {
+			json_ret.put("ret_code", -2);
+			json_ret.put("ret_message", "开始日期或结束日期转换异常");
+			return JSONObject.toJSONString(json_ret, SerializerFeature.WriteMapNullValue);
+		}
+		
+		List<EpUser> epus_valid = new ArrayList<EpUser>();	// 有效的人员信息数组列表
+		TreeMap<Integer, EpUser> epus_valid_map = getEpusValid(epus_valid);
+		
+		if(epus_valid.size() == 0) {
+			json_ret.put("ret_code", -3);
+			json_ret.put("ret_message", "有效的人员信息列表为空异常");
+			return JSONObject.toJSONString(json_ret, SerializerFeature.WriteMapNullValue);
+		}
+		
+		List<Date> need_dates = DateUtil.calcDatesExcludeGivenDatesByStartEndDate(null, start_date, end_date);
+		
+		if(need_dates == null ) {
+			json_ret.put("ret_code", -5);
+			json_ret.put("ret_message", "需要筛选的日期列表为null异常");
+			return JSONObject.toJSONString(json_ret, SerializerFeature.WriteMapNullValue);
+		}
+		
+		if(need_dates.size() == 0) {
+			json_ret.put("ret_code", -6);
+			json_ret.put("ret_message", "需要筛选的日期个数为0异常");
+			return JSONObject.toJSONString(json_ret, SerializerFeature.WriteMapNullValue);
+		}
+		
+		List<HashMap<String, Object>> results = epAttenService.getFirstAndLastPunchTimeValidByDatesAndEpUidsBeforeToday(need_dates, epus_valid);
+		
+		if(results == null) {
+			json_ret.put("ret_code", -7);
+			json_ret.put("ret_message", "重新筛选得到的结果为null异常");
+			return JSONObject.toJSONString(json_ret, SerializerFeature.WriteMapNullValue);
+		}
+		
+		if(results.size() == 0) {
+			json_ret.put("ret_code", -8);
+			json_ret.put("ret_message", "重新筛选得到的结果个数为0异常");
+			return JSONObject.toJSONString(json_ret, SerializerFeature.WriteMapNullValue);
+		}
+		
+		int proc_ret = procPush2HWAttenDatas(results, epus_valid_map, need_dates);
+		
+		if(proc_ret > 0) {
+			json_ret.put("ret_code", 1);
+			json_ret.put("ret_message", "重新筛选成功，proc_ret = " + proc_ret);
+			return JSONObject.toJSONString(json_ret, SerializerFeature.WriteMapNullValue);
+		} else {
+			json_ret.put("ret_code", -9);
+			json_ret.put("ret_message", "处理筛选结果集时出现异常，proc_ret = " + proc_ret);
+			return JSONObject.toJSONString(json_ret, SerializerFeature.WriteMapNullValue);
+		}
+		
+	}
+	
 	
 	/**
 	 * 当出现了异常情况时，筛选打卡数据

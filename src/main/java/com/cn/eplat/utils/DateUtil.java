@@ -600,11 +600,11 @@ public class DateUtil {
 	public static void main(String[] args) {
 		
 		
-		
+		/*
 		long time_mills = -62135798400000l;
 		Date date = new Date(time_mills);
 		System.out.println("date = " + formatDate(2, date));	// 输出: date = 0001-01-01 00:00:00
-		
+		*/
 		
 		
 		
@@ -641,8 +641,15 @@ public class DateUtil {
 		System.out.println("two_days_ago = " + DateUtil.formatDate(2, two_days_ago));
 		System.out.println("yesterday = " + DateUtil.formatDate(2, yesterday));
 		System.out.println("today = " + DateUtil.formatDate(2, now_time));
-		*/
 		
+		Date now_date = new Date();
+		Date start_date = DateUtil.calcXDaysAfterADate(-7, now_date);
+		Date end_date = DateUtil.calcXDaysAfterADate(-1, now_date);
+		
+		System.out.println("7天前：" + DateUtil.formatDate(2, start_date));
+		System.out.println("1天前：" + DateUtil.formatDate(2, end_date));
+		System.out.println("今天：" + DateUtil.formatDate(2, now_date));
+		*/
 		
 		/*
 		Date date = DateUtil.parse2date(1, "2017-01-23");
