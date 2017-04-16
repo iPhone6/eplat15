@@ -521,6 +521,7 @@ public class EpDataController {
 		
 		if(pthws.size() == 0) {
 			logger.error("准备推送华为考勤数据条数为0");
+			return -11;
 		} else {
 			Integer batch_add_pthws = pushToHwService.batchAddPushToHws(pthws);
 			
@@ -537,6 +538,7 @@ public class EpDataController {
 		
 		if(filtered_all.size() == 0) {
 			logger.error("筛选日志数据条数为0");
+			return -12;
 		} else {
 			int batch_add_pfls = pushFilterLogService.batchAddPushFilterLogs(filtered_all);
 			
@@ -545,7 +547,7 @@ public class EpDataController {
 			}
 		}
 		
-		return 100;
+		return pthws.size();
 	}
 	
 	
