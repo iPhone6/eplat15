@@ -24,6 +24,9 @@ public class EpAtten {
 	private String platform;	// 表示打卡时所使用的平台（目前主要是iOS和Android两大平台）
 	private String mach_sn;	// 打卡机序列号
 	private Date fetch_time;	// 接收远程推送过来的打卡机打卡数据的时间
+	private String proc_result;	// 处理结果：主要用来标记是否已经经过筛选处理，即每天凌晨1点要对0点前的所有打卡数据进行筛选的操作。其值包括：filter_success, filter_failed，分别表示筛选成功和筛选失败，如果值为NULL则表示尚未筛选。
+	private Integer proc_count;	// 处理次数计数：用于记录进行筛选处理的次数
+	private Date proc_time;		// 最近一次的处理时间：用于记录最后一次进行筛选处理的时间信息
 	
 	public Long getId() {
 		return id;
@@ -115,12 +118,31 @@ public class EpAtten {
 	public void setFetch_time(Date fetch_time) {
 		this.fetch_time = fetch_time;
 	}
+	public String getProc_result() {
+		return proc_result;
+	}
+	public void setProc_result(String proc_result) {
+		this.proc_result = proc_result;
+	}
+	public Integer getProc_count() {
+		return proc_count;
+	}
+	public void setProc_count(Integer proc_count) {
+		this.proc_count = proc_count;
+	}
+	public Date getProc_time() {
+		return proc_time;
+	}
+	public void setProc_time(Date proc_time) {
+		this.proc_time = proc_time;
+	}
 	
 	@Override
 	public String toString() {
 		return "EpAtten [id=" + id + ", ep_uid=" + ep_uid + ", type=" + type + ", latitude=" + latitude + ", longtitude=" + longtitude + ", gps_distance=" + gps_distance
 				+ ", gps_addr=" + gps_addr + ", wifi_mac=" + wifi_mac + ", wifi_name=" + wifi_name + ", is_valid=" + is_valid + ", time=" + time + ", count=" + count
-				+ ", platform=" + platform + ", mach_sn=" + mach_sn + ", fetch_time=" + fetch_time + "]";
+				+ ", platform=" + platform + ", mach_sn=" + mach_sn + ", fetch_time=" + fetch_time + ", proc_result=" + proc_result + ", proc_count=" + proc_count + ", proc_time="
+				+ proc_time + "]";
 	}
 	
 }

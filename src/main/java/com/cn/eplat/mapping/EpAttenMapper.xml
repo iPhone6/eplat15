@@ -3,11 +3,11 @@
 <mapper namespace="com.cn.eplat.dao.IEpAttenDao">
 	
 	<sql id="all_fields">
-		id, ep_uid, type, latitude, longtitude, gps_distance, gps_addr, wifi_mac, wifi_name, is_valid, time, count, platform, mach_sn, fetch_time
+		id, ep_uid, type, latitude, longtitude, gps_distance, gps_addr, wifi_mac, wifi_name, is_valid, time, count, platform, mach_sn, fetch_time, proc_result, proc_count, proc_time
 	</sql>
 	
 	<sql id="all_fields_except_id">
-		ep_uid, type, latitude, longtitude, gps_distance, gps_addr, wifi_mac, wifi_name, is_valid, time, count, platform, mach_sn, fetch_time
+		ep_uid, type, latitude, longtitude, gps_distance, gps_addr, wifi_mac, wifi_name, is_valid, time, count, platform, mach_sn, fetch_time, proc_result, proc_count, proc_time
 	</sql>
 	
 	<sql id="all_fields_except_id_sharp">
@@ -24,7 +24,10 @@
 		#{count},
 		#{platform},
 		#{mach_sn},
-		#{fetch_time}
+		#{fetch_time},
+		#{proc_result},
+		#{proc_count},
+		#{proc_time}
 	</sql>
 	
 	<insert id="insertEpAtten" parameterType="com.cn.eplat.model.EpAtten"
@@ -133,7 +136,10 @@
 		#{item.count},
 		#{item.platform},
 		#{item.mach_sn},
-		#{item.fetch_time}
+		#{item.fetch_time},
+		#{item.proc_result},
+		#{item.proc_count},
+		#{item.proc_time}
 	</sql>
 	
 	<insert id="batchInsertEpAttens" parameterType="com.cn.eplat.model.EpAtten" >
@@ -191,6 +197,31 @@
 					<foreach collection="epus" item="item" separator="," >
 						<if test="item != null and item.id > 0 ">
 							#{item.id}
+						</if>
+					</foreach>
+				)
+			</if>
+		GROUP BY ep_uid, punch_date
+	</select>
+	
+	<select id="getFirstAndLastPunchTimeValidByDatesAndEpUidsBeforeToday" resultType="map" >
+		SELECT ep_uid, DATE_FORMAT(TIME,'%Y-%m-%d') punch_date, MIN(TIME) first_punch_time, MAX(TIME) last_punch_time
+		FROM ep_attendance
+		WHERE is_valid = TRUE
+			AND TIME IS NOT NULL
+			AND TIME &lt; DATE_FORMAT(NOW(),'%Y-%m-%d')
+			<if test="dates != null and dates.size() > 0 ">
+				and DATE_FORMAT(TIME,'%Y-%m-%d') in (
+					<foreach collection="dates" item="item" separator="," >
+						DATE_FORMAT( #{item}, '%Y-%m-%d' )
+					</foreach>
+				)
+			</if>
+			<if test="epuids != null and epuids.size() > 0 ">
+				and ep_uid in (
+					<foreach collection="epuids" item="item" separator="," >
+						<if test="item != null and item > 0 ">
+							#{item}
 						</if>
 					</foreach>
 				)
@@ -268,6 +299,15 @@
 			<if test="fetch_time != null ">
 				fetch_time = #{fetch_time},
 			</if>
+			<if test="proc_result != null and proc_result != '' ">
+				proc_result = #{proc_result},
+			</if>
+			<if test="proc_count != null ">
+				proc_count = #{proc_count},
+			</if>
+			<if test="proc_time != null ">
+				proc_time = #{proc_time},
+			</if>
 		</set>
 	</sql>
 	
@@ -277,6 +317,49 @@
 		<include refid="set_all_fields_with_if"></include>
 		where id = #{id}
 	</update>
+	
+	<update id="updateEpAttenProcResultOfGivenDates">
+		update ep_attendance
+		<set>
+			proc_result = 'filter_success',
+			proc_count = (ifnull(proc_count, 0) + 1),
+			proc_time = now()
+		</set>
+		where 1 &lt; 1
+			<if test="dates != null and dates.size() > 0 ">
+				or DATE_FORMAT(TIME,'%Y-%m-%d') in (
+					<foreach collection="dates" item="item" separator="," >
+						DATE_FORMAT( #{item}, '%Y-%m-%d' )
+					</foreach>
+				)
+			</if>
+	</update>
+	
+	<select id="getNotProcessedEpAttenCount" resultType="int" >
+		select count(1)
+		from ep_attendance
+		where proc_result is null
+			and time &lt; DATE_FORMAT(NOW(),'%Y-%m-%d')
+	</select>
+	
+	<select id="getNotProcessedEpAttenDates" resultType="date" >
+		select distinct(v.not_proc_date)
+		from (
+			select DATE_FORMAT(TIME,'%Y-%m-%d') not_proc_date
+			from ep_attendance
+			where proc_result is null
+				and time &lt; DATE_FORMAT(NOW(),'%Y-%m-%d')
+		) v
+		ORDER BY v.not_proc_date
+	</select>
+	
+	<select id="getNotProcessedEpAttenEpUids" resultType="int" >
+		select DISTINCT( ep_uid)
+		from ep_attendance
+		where proc_result is null
+			and time &lt; DATE_FORMAT(NOW(),'%Y-%m-%d')
+		order by ep_uid
+	</select>
 	
 	
 	

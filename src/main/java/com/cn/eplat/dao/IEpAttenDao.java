@@ -36,6 +36,15 @@ public interface IEpAttenDao {
 	// 根据给定日期列表和用户id列表查询出每个用户在这些日期中的最早一次和最晚一次有效/成功打卡的打卡时间（只查今天0点整之前的打卡数据）
 	public List<HashMap<String, Object>> queryFirstAndLastPunchTimeValidByDatesAndEpUidsBeforeToday(@Param("dates") List<Date> dates, @Param("epus") List<EpUser> epus);
 	
+	// 根据给定日期列表和用户id列表查询出每个用户在这些日期中的最早一次和最晚一次有效/成功打卡的打卡时间（只查今天0点整之前的打卡数据）
+	/**
+	 * 根据给定日期列表和用户id列表查询出每个用户在这些日期中的最早一次和最晚一次有效/成功打卡的打卡时间（只查今天0点整之前的打卡数据）
+	 * @param dates
+	 * @param epuids
+	 * @return
+	 */
+	public List<HashMap<String, Object>> getFirstAndLastPunchTimeValidByDatesAndEpUidsBeforeToday(@Param("dates") List<Date> dates, @Param("epuids") List<Integer> epuids);
+	
 	// 在所有打卡数据中，查询最早的一次和最晚的一次打卡数据的日期（只查今天0点之前的）
 	public HashMap<String, Object> queryFirstAndLastPunchTimeValid();
 	
@@ -47,5 +56,31 @@ public interface IEpAttenDao {
 	
 	// 根据id修改打卡数据信息
 	public int updateEpAttenById(EpAtten epa);
+	
+	// 修改指定日期的所有打卡数据的处理结果字段（proc_result）的值
+	/**
+	 * 修改指定日期的所有打卡数据的处理结果字段（proc_result）的值
+	 * @param dates
+	 * @return
+	 */
+	int updateEpAttenProcResultOfGivenDates(@Param("dates") List<Date> dates);
+	
+	/**
+	 * 获取尚未做筛选处理的打卡数据数量
+	 * @return
+	 */
+	int getNotProcessedEpAttenCount();
+	
+	/**
+	 * 获取尚未做筛选处理的打卡数据的日期
+	 * @return
+	 */
+	List<Date> getNotProcessedEpAttenDates();
+	
+	/**
+	 * 获取尚未做筛选处理的打卡数据的用户id
+	 * @return
+	 */
+	List<Integer> getNotProcessedEpAttenEpUids();
 	
 }

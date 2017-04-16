@@ -30,6 +30,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.b510b.excel.ReadExcel;
 import com.b510b.excel.vo.Employee;
+import com.cn.eplat.dao.IEpAttenDao;
 import com.cn.eplat.model.DeptClue;
 import com.cn.eplat.model.DeptIdClue;
 import com.cn.eplat.model.DeptUser;
@@ -81,6 +82,8 @@ public class EpDataController {
 	private IPushFilterLogService pushFilterLogService;
 	@Resource
 	private IEpAttenService epAttenService;
+	@Resource
+	private IEpAttenDao epAttenDao;
 	@Resource
 	private IPushToHwService pushToHwService;
 	
@@ -232,18 +235,19 @@ public class EpDataController {
 		return imp_ret.toJSONString();
 	}
 	
-	
-	public int filterPush2HwAttenOperation(Date start, Date end) {
+	/**
+	 * 获取有效的人员信息
+	 * @return
+	 */
+	private TreeMap<Integer, EpUser> getEpusValid(List<EpUser> epus_valid) {
 		
 		EpUser epu_query = new EpUser();
 		epu_query.setPush2hw_atten(true);
-		/*
-		// TODO: 临时代码 (Start)
-		epu_query.setId(913); 	// 符边正 的ep_uid=913
-		// TODO: 临时代码 (End)
-		*/
+		
 		List<EpUser> epus_push2hw = epUserService.getEpUserByCriteria(epu_query);	// 1. 首先查出准备推送华为考勤系统的人员信息
-		List<EpUser> epus_valid = new ArrayList<EpUser>();	// 有效的人员信息数组列表
+		if(epus_valid == null) {
+			epus_valid = new ArrayList<EpUser>();	// 有效的人员信息数组列表
+		}
 		TreeMap<Integer, EpUser> epus_valid_map = new TreeMap<Integer, EpUser>();
 		List<EpUser> epus_invalid = new ArrayList<EpUser>();	// 无效的人员信息数组列表
 		
@@ -262,6 +266,14 @@ public class EpDataController {
 		if(epus_invalid.size() > 0) {
 			invalid_epus_ja.addAll(epus_invalid);
 		}
+		
+		return epus_valid_map;
+	}
+	
+	public int filterPush2HwAttenOperation(Date start, Date end) {
+		
+		List<EpUser> epus_valid = new ArrayList<EpUser>();	// 有效的人员信息数组列表
+		TreeMap<Integer, EpUser> epus_valid_map = getEpusValid(epus_valid);
 		
 		if(epus_valid.size() == 0) {
 			return -3;
@@ -305,10 +317,40 @@ public class EpDataController {
 			return -8;
 		}
 		
-		List<PushToHw> pthws = new ArrayList<PushToHw>();
-		List<PushFilterLog> filtered_valid = new ArrayList<PushFilterLog>();
-		List<PushFilterLog> filtered_invalid = new ArrayList<PushFilterLog>();
-		List<PushFilterLog> filtered_all = new ArrayList<PushFilterLog>();
+		return procPush2HWAttenDatas(results, epus_valid_map, need_dates);
+		
+//		return 1;
+	}
+	
+	/**
+	 * 当出现了异常情况时，筛选打卡数据
+	 * @return
+	 */
+	public int filterPush2HwAttenOperationAbnormal() {
+		int npe_count = epAttenDao.getNotProcessedEpAttenCount();
+		
+		if(npe_count > 0) {
+			List<Date> npe_dates = epAttenDao.getNotProcessedEpAttenDates();
+			List<Integer> npe_epuids = epAttenDao.getNotProcessedEpAttenEpUids();
+			
+			List<HashMap<String, Object>> results = epAttenDao.getFirstAndLastPunchTimeValidByDatesAndEpUidsBeforeToday(npe_dates, npe_epuids);
+			
+			TreeMap<Integer, EpUser> epus_valid_map = getEpusValid(null);
+			
+			return procPush2HWAttenDatas(results, epus_valid_map, npe_dates);
+			
+		} else {
+			// 当尚未做筛选处理的打卡数据个数为0时，直接返回0
+			return 0;
+		}
+		
+//		return -1;
+	}
+	
+	/**
+	 * 处理经过筛选的考勤数据
+	 */
+	private void procFilterdEpAttens(List<HashMap<String, Object>> results, TreeMap<Integer, EpUser> epus_valid_map, List<PushToHw> pthws, List<PushFilterLog> filtered_valid, List<PushFilterLog> filtered_invalid) {
 		
 		Date filter_time = new Date();
 		
@@ -369,6 +411,18 @@ public class EpDataController {
 			}
 		}
 		
+	}
+	
+	
+	private int procPush2HWAttenDatas(List<HashMap<String, Object>> results, TreeMap<Integer, EpUser> epus_valid_map, List<Date> need_dates) {
+		
+		List<PushToHw> pthws = new ArrayList<PushToHw>();
+		List<PushFilterLog> filtered_valid = new ArrayList<PushFilterLog>();
+		List<PushFilterLog> filtered_invalid = new ArrayList<PushFilterLog>();
+		List<PushFilterLog> filtered_all = new ArrayList<PushFilterLog>();
+		
+		procFilterdEpAttens(results, epus_valid_map, pthws, filtered_valid, filtered_invalid);
+		
 		if(pthws.size() == 0) {
 			logger.error("准备推送华为考勤数据条数为0");
 		} else {
@@ -378,6 +432,9 @@ public class EpDataController {
 				return -9;
 			}
 		}
+		
+		// 筛选完后，修改已处理的日期下的所有打卡数据的处理结果字段的值
+		epAttenDao.updateEpAttenProcResultOfGivenDates(need_dates);
 		
 		filtered_all.addAll(filtered_invalid);
 		filtered_all.addAll(filtered_valid);
@@ -392,7 +449,7 @@ public class EpDataController {
 			}
 		}
 		
-		return 1;
+		return 100;
 	}
 	
 	

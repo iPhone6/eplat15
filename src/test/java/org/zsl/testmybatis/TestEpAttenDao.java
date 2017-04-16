@@ -34,6 +34,53 @@ public class TestEpAttenDao {
 	
 	
 	
+	
+	@Test
+	public void testgetNotProcessedEpAttenEpUids() {
+		
+		List<Integer> epuids = null;
+		try {
+			epuids = epAttenDao.getNotProcessedEpAttenEpUids();
+		} catch (Exception e) {
+			logger.error("查询出现异常，error_info = " + e.getMessage());
+		}
+		
+		if(epuids != null && epuids.size() > 0) {
+			logger.info("查询成功！");
+			for(Integer uid:epuids) {
+				System.out.print(uid + ", ");
+			}
+		} else {
+			logger.error("查询失败！");
+		}
+		
+	}
+	
+	
+	
+	@Test
+	public void testgetNotProcessedEpAttenDates() {
+		
+		List<Date> res_dates = null;
+		try {
+			res_dates = epAttenDao.getNotProcessedEpAttenDates();
+		} catch (Exception e) {
+			logger.error("查询出现异常，error_info = " + e.getMessage());
+		}
+		
+		if(res_dates != null && res_dates.size() > 0) {
+			logger.info("查询成功！");
+			for(Date date:res_dates) {
+				System.out.println(DateUtil.formatDate(2, date));
+			}
+		} else {
+			logger.error("查询失败！");
+		}
+		
+	}
+	
+	
+	
 	@Test
 	public void updateAllEpAttenGPSDistance() {
 		
