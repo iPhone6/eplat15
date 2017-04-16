@@ -31,6 +31,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.b510b.excel.ReadExcel;
 import com.b510b.excel.vo.Employee;
 import com.cn.eplat.dao.IEpAttenDao;
+import com.cn.eplat.dao.IPushToHwDao;
 import com.cn.eplat.model.DeptClue;
 import com.cn.eplat.model.DeptIdClue;
 import com.cn.eplat.model.DeptUser;
@@ -48,6 +49,7 @@ import com.cn.eplat.service.IEpDeptService;
 import com.cn.eplat.service.IEpUserService;
 import com.cn.eplat.service.IPushFilterLogService;
 import com.cn.eplat.service.IPushToHwService;
+import com.cn.eplat.timedtask.PushToHwTask;
 import com.cn.eplat.utils.DateUtil;
 import com.cn.eplat.utils.FileUtil;
 import com.cn.eplat.utils.Files_Helper_DG;
@@ -86,6 +88,10 @@ public class EpDataController {
 	private IEpAttenDao epAttenDao;
 	@Resource
 	private IPushToHwService pushToHwService;
+	@Resource
+	private IPushToHwDao pushToHwDao;
+	@Resource
+	private PushToHwTask pushToHwTask;
 	
 	@RequestMapping(params = "getData", produces = "application/json; charset=UTF-8")
 	@ResponseBody
@@ -406,6 +412,10 @@ public class EpDataController {
 		int proc_ret = procPush2HWAttenDatas(results, epus_valid_map, need_dates);
 		
 		if(proc_ret > 0) {
+			List<PushToHw> pths = pushToHwDao.findNotPushedDatas();
+			pushToHwTask.setPths(pths);
+			pushToHwTask.pushDatasToHw();
+			
 			json_ret.put("ret_code", 1);
 			json_ret.put("ret_message", "重新筛选成功，proc_ret = " + proc_ret);
 			return JSONObject.toJSONString(json_ret, SerializerFeature.WriteMapNullValue);

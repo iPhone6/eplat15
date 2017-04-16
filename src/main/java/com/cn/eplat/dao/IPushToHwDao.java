@@ -25,4 +25,10 @@ public interface IPushToHwDao {
 	// 按序号筛选推送数据（从开始到结束序号）
 	List<PushToHw> getPushToHwsByIdSeq(@Param("idSeqStart") Long idSeqStart, @Param("idSeqEnd") Long idSeqEnd);
 	
+	/**
+	 * 查出未推送HW考勤系统的数据
+	 * @return
+	 */
+	List<PushToHw> findNotPushedDatas();
+	
 }

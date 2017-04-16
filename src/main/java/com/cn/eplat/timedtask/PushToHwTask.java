@@ -42,6 +42,8 @@ public class PushToHwTask {
 	@Resource
 	private IEpUserDao epUserDao;
 	
+	private List<PushToHw> pths;
+	
 	//将epuid-work_no缓存起来   key-epuid  value-work_no  
 	private static Map<String,String>  workNumMap = new HashMap<String, String>();
 	
@@ -57,13 +59,26 @@ public class PushToHwTask {
 	public static void setPush_times(int push_times) {
 		PushToHwTask.push_times = push_times;
 	}
-
-//	 @Scheduled(cron = "0 30 1 * * ? ") // "0 0 1 * * ?"      // （每天凌晨1点30分开始执行）(正式上线时用的定时设置)
+	
+	public List<PushToHw> getPths() {
+		return pths;
+	}
+	public void setPths(List<PushToHw> pths) {
+		this.pths = pths;
+	}
+	
+	//	 @Scheduled(cron = "0 30 1 * * ? ") // "0 0 1 * * ?"      // （每天凌晨1点30分开始执行）(正式上线时用的定时设置)
 //	@Scheduled(cron = "0/8 * * * * ? ")     // （快速测试用定时设置。。。）
 	public void pushDatasToHw() { // 将从数据库里查出来的数据组装成推送需要的数据
 		long start_time = System.currentTimeMillis();	// 记录推送开始时间毫秒数
 		System.out.println("本次推送到华为,开始时间   "+DateUtil.formatDate(2, new Date()));
-		List<PushToHw> allNeedsDatas = getAllNeedsDatas();
+		
+		List<PushToHw> allNeedsDatas = getPths();
+		if(allNeedsDatas == null || allNeedsDatas.size() == 0) {
+			allNeedsDatas = getAllNeedsDatas();
+		} else {
+			// 
+		}
 		
 		/*
 		// TODO: 临时代码
@@ -148,6 +163,10 @@ public class PushToHwTask {
 			}
 		}else{
 			System.out.println("没有更多数据需要推送");
+		}
+		
+		if(getPths() != null) {
+			setPths(null);	// 推送完成后，将待推送HW考勤系统的临时成员变量的值清空
 		}
 		
 		long end_time = System.currentTimeMillis();	// 记录推送结束时间毫秒数

@@ -56,5 +56,13 @@
 			</if>
 	</select>
 	
+	<select id="findNotPushedDatas" resultType="com.cn.eplat.model.PushToHw" >
+		select * from push_to_hw
+		where id not in (
+			select distinct(pth_id)
+			from push_log
+		)
+	</select>
+	
 	
 </mapper>
