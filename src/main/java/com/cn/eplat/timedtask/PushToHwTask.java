@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 
 import org.apache.http.util.TextUtils;
+import org.apache.log4j.Logger;
 import org.junit.runner.RunWith;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -32,7 +33,9 @@ import com.cn.eplat.utils.elead2huawei.GetTokenHelper;
 @ContextConfiguration(locations = { "classpath:spring-mybatis.xml" })
 @Component
 public class PushToHwTask {
-
+	
+	private static Logger logger = Logger.getLogger(PushToHwTask.class);
+	
 	@Resource
 	private IPushToHwDao pushToHwDao;
 
@@ -67,11 +70,11 @@ public class PushToHwTask {
 		this.pths = pths;
 	}
 	
-//	@Scheduled(cron = "0 0 2 * * ? ") // "0 0 1 * * ?"      // （每天凌晨1点30分开始执行）(正式上线时用的定时设置)
+	@Scheduled(cron = "0 30 1 * * ? ") // "0 30 1 * * ?"      // （每天凌晨1点30分开始执行）(正式上线时用的定时设置)
 //	@Scheduled(cron = "0/8 * * * * ? ")     // （快速测试用定时设置。。。）
 	public void pushDatasToHw() { // 将从数据库里查出来的数据组装成推送需要的数据
 		long start_time = System.currentTimeMillis();	// 记录推送开始时间毫秒数
-		System.out.println("本次推送到华为,开始时间   "+DateUtil.formatDate(2, new Date()));
+		logger.info("本次推送到华为,开始时间   "+DateUtil.formatDate(2, new Date()));
 		
 		List<PushToHw> allNeedsDatas = getPths();
 		if(allNeedsDatas == null || allNeedsDatas.size() == 0) {
@@ -127,7 +130,7 @@ public class PushToHwTask {
 
 				if (lists.size() == Constant.COUNTS_PER_REQUEST) {// 满足推送条数就推送出去
 					addPushTimes();
-					System.out.println("这是第    "+getPush_times()+"    次推送到华为，共推送   "+Constant.COUNTS_PER_REQUEST+"    条数据");
+					logger.info("这是第    "+getPush_times()+"    次推送到华为，共推送   "+Constant.COUNTS_PER_REQUEST+"    条数据");
 					boolean isSuccess = ExportData2HWHelper.getInstance().insert2HW(lists, token);
 					dealResult(lists, isSuccess);
 					lists.clear();
@@ -147,7 +150,7 @@ public class PushToHwTask {
 
 				if (lists.size() == Constant.COUNTS_PER_REQUEST) {// 满足推送条数就推送出去
 					addPushTimes();
-					System.out.println("这是第    "+getPush_times()+"    次推送到华为，共推送   "+Constant.COUNTS_PER_REQUEST+"    条数据");
+					logger.info("这是第    "+getPush_times()+"    次推送到华为，共推送   "+Constant.COUNTS_PER_REQUEST+"    条数据");
 					boolean isSuccess = ExportData2HWHelper.getInstance().insert2HW(lists, token);
 					dealResult(lists, isSuccess);
 					lists.clear();
@@ -156,13 +159,13 @@ public class PushToHwTask {
 
 			if (!lists.isEmpty()) {
 				addPushTimes();
-				System.out.println("这是第    "+getPush_times()+"    次推送到华为，共推送   "+lists.size()+"    条数据");
+				logger.info("这是第    "+getPush_times()+"    次推送到华为，共推送   "+lists.size()+"    条数据");
 				boolean isSuccess = ExportData2HWHelper.getInstance().insert2HW(lists, token);
 				dealResult(lists, isSuccess);
 				lists.clear();
 			}
 		}else{
-			System.out.println("没有更多数据需要推送");
+			logger.info("没有更多数据需要推送");
 		}
 		
 		if(getPths() != null) {
@@ -170,8 +173,8 @@ public class PushToHwTask {
 		}
 		
 		long end_time = System.currentTimeMillis();	// 记录推送结束时间毫秒数
-		System.out.println("本次推送到华为,结束时间   "+DateUtil.formatDate(2, new Date()));
-		System.out.println("本次推送共花费时间：    "+DateUtil.timeMills2ReadableStr(end_time-start_time)+"    毫秒");
+		logger.info("本次推送到华为,结束时间   "+DateUtil.formatDate(2, new Date()));
+		logger.info("本次推送共花费时间：    "+DateUtil.timeMills2ReadableStr(end_time-start_time)+"    毫秒");
 	}
 
 	//获取所有需要推送的数据
