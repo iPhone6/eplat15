@@ -102,7 +102,7 @@
 				<entry value-ref="ds_access" key="ds_access"></entry>
 			</map>
 		</property>
-		<property name="defaultTargetDataSource" ref="ds_mop"></property>      <!-- 默认使用ds_admin的数据源 -->
+		<property name="defaultTargetDataSource" ref="ds_admin"></property>      <!-- 默认使用ds_admin的数据源 -->
 	</bean>
 	
 	<!-- 
