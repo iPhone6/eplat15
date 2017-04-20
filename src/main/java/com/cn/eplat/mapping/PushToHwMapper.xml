@@ -15,7 +15,7 @@
 		#{item.ep_uid}, #{item.name}, #{item.id_no}, #{item.dayof_date}, #{item.dayof_week}, #{item.on_duty_time}, #{item.off_duty_time}
 	</sql>
 	
-	<insert id="batchInsertPushToHws" parameterType="com.cn.eplat.model.PushToHw" >
+	<insert id="batchInsertPushToHws" parameterType="com.cn.eplat.model.PushToHw" useGeneratedKeys="true" keyProperty="id" >
 		insert into push_to_hw (
 			<include refid="all_fields_except_id"></include>
 		) values 

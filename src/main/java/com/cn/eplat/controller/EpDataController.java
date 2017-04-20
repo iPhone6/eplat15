@@ -538,6 +538,9 @@ public class EpDataController {
 			if(batch_add_pthws == null || batch_add_pthws < 0) {
 				return -9;
 			}
+			
+			pushToHwTask.setPths(pthws);
+			pushToHwTask.pushDatasToHw();
 		}
 		
 		// 筛选完后，修改已处理的日期下的所有打卡数据的处理结果字段的值

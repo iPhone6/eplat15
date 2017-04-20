@@ -57,7 +57,7 @@ public class FilterPunchCardDatas {
 
 
 
-//	@Scheduled(cron = "0 0 1 * * ? ")	// "0 0 1 * * ?"  （每天凌晨1点整开始执行）(正式上线时用的定时设置)
+	@Scheduled(cron = "0 0 1 * * ? ")	// "0 0 1 * * ?"  （每天凌晨1点整开始执行）(正式上线时用的定时设置)
 //	@Scheduled(cron = "0/5 * * * * ? ")	// （快速测试用定时设置。。。）
 	public void filter() {
 		System.out.println("执行定时筛选任务。。。");
@@ -106,8 +106,10 @@ public class FilterPunchCardDatas {
 		} else {
 //			Date two_days_ago = DateUtil.calcXDaysAfterADate(-2, now_time);
 			Date yesterday = DateUtil.calcXDaysAfterADate(-1, now_time);
+//			Date tomorrow = DateUtil.calcXDaysAfterADate(1, now_time);	// TODO: 临时测试用代码
 			
 			int new_filter_ret = epDataController.filterPush2HwAttenOperation(yesterday, yesterday);
+//			int new_filter_ret = epDataController.filterPush2HwAttenOperation(tomorrow, tomorrow);
 			
 			if(new_filter_ret > 0) {
 				logger.info("筛选准备推送华为的考勤数据（新数据）成功, new_filter_ret = " + new_filter_ret);
@@ -118,7 +120,7 @@ public class FilterPunchCardDatas {
 			}
 		}
 		
-		// // 探测是否有异常情况（有打卡数据的proc_result字段的值为NULL时），如有异常情况，则进行重新筛选
+		// // 探测是否有异常情况（有打卡数据的proc_result字段的值为NULL时），如有异常情况，则进行重新筛选，并推送华为考勤系统
 		int p2hw_abnormal = epDataController.filterPush2HwAttenOperationAbnormal();
 		
 		if(p2hw_abnormal == 0) {
