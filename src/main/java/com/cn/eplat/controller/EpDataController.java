@@ -539,8 +539,27 @@ public class EpDataController {
 				return -9;
 			}
 			
-			pushToHwTask.setPths(pthws);
-			pushToHwTask.pushDatasToHw();
+			// 如果筛选出来的考勤数据是只包含昨天一天的，则先跳过推送HW考勤系统，等待到1:30时开始自动推送昨天的考勤数据
+			boolean skip_push2hw = false;
+			if(need_dates != null && need_dates.size() == 1) {
+				Date one_need_date = need_dates.get(0);
+				Date now_date = new Date();
+				if(DateUtil.formatDate(1, DateUtil.calcXDaysAfterADate(-1, now_date)).equals(DateUtil.formatDate(1, one_need_date))) {
+					skip_push2hw = true;
+				} else {
+					// 
+				}
+			} else {
+				// 
+			}
+			
+			if(skip_push2hw) {
+				// 跳过推送只包含昨天的已筛选考勤数据的推送HW考勤系统操作
+				logger.info("跳过推送只筛选出昨天的考勤数据。。。");
+			} else {
+				pushToHwTask.setPths(pthws);
+				pushToHwTask.pushDatasToHw();
+			}
 		}
 		
 		// 筛选完后，修改已处理的日期下的所有打卡数据的处理结果字段的值
